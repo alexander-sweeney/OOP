@@ -1,0 +1,22 @@
+void setup()
+{
+  size(500, 500);
+  villages();
+  println(tw);
+}
+
+ArrayList<ArrayList<Float>> data = new ArrayList<ArrayList<Float>>();
+
+
+ArrayList<Float> villages = new ArrayList<Float>();
+
+void villages()
+{
+  String[] strings = loadStrings("tw.csv");
+  
+  for(String s:strings)
+  {
+    villages.add(parseFloat(s));
+  }
+  
+}
