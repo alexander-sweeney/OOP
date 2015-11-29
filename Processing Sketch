@@ -1,22 +1,199 @@
 void setup()
 {
-  size(500, 500);
-  villages();
-  println(tw);
+  size(500, 500, P3D);  
+  
+// maybe need to declare ints here
+  
+  centX = width * 0.5f;
+  centY = height * 0.5f;
+  
+  textMode(SHAPE);
+  
+  for (int i = 0 ; i < villages.length ; i ++)
+  {
+    colors[i] = color(random(100, 255), random(100, 255), 0);
+  }  
 }
 
-ArrayList<ArrayList<Float>> data = new ArrayList<ArrayList<Float>>();
+float[] villages = {92,92,94,108,113,121,126,128,128,133,133,133,133,133,133,133,133,137,145,154,164,164,166,177,178,178,178,180,180,182}; 
+String[] days = {"30", "31", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28"};
+color[] colors = new color[villages.length];
 
+float centX, centY;
 
-ArrayList<Float> villages = new ArrayList<Float>();
-
-void villages()
+float sum(float[] array)
 {
-  String[] strings = loadStrings("tw.csv");
-  
-  for(String s:strings)
+  float sum = 0;
+  for (float r:array)
   {
-    villages.add(parseFloat(s));
+    sum += r;
+  }
+  return sum;
+}
+
+
+int minIndex(float[] r)
+{
+  float min = r[0];
+  int minIndex = 0;
+  for (int i = 1 ; i < r.length ; i ++)
+  {
+    if (r[i] < min)
+    {
+      min = r[i];
+      minIndex = i;
+    }
+  }
+  return minIndex;
+}
+
+int maxIndex(float[] r)
+{
+  float max = r[0];
+  int maxIndex = 0;
+  for (int i = 1 ; i < r.length ; i ++)
+  {
+    if (r[i] > max)
+    {
+      max = r[i];
+      maxIndex = i;
+    }
+  }
+  return maxIndex;
+}
+
+int mode = 0;
+
+color randomColor()
+{
+  return color(random(0, 255), random(0, 255), random(0, 255));
+}
+
+void draw()
+{    
+  background(0);
+  float barWidth = width / (float) days.length;
+  switch (mode)
+  {    
+    case 0:            
+      for (int i = 0 ; i < villages.length ; i ++)
+      {
+        float x = i * barWidth;
+        fill(colors[i]);
+     stroke(colors[i]);
+        rect(x, height, barWidth, - villages[i]);
+      }  
+      break;
+    case 1:
+    {
+      int maxIndex = maxIndex(villages);
+      float max = villages[maxIndex];    
+      float scale = height / max;
+      barWidth = width / (float) days.length;
+      for (int i = 0 ; i < villages.length ; i ++)
+      {
+        float x = i * barWidth;
+        float y = villages[i] * scale;
+        float col = map(y, 0, max * scale, 255, 100);
+        stroke(0, col, col);
+        fill(0, col, col);        
+        rect(x, height, barWidth - 1, - y);
+        // Or use the Processing map function!
+        //rect(x, height, barWidth, - map(villages[i], 0, max, 0, height));
+      }
+      break;
+    }      
+  case 2:
+      stroke(255);
+      barWidth = width / (float) (days.length - 1);
+      for (int i = 1 ; i < villages.length ; i ++)
+      {
+        float x = i * barWidth;
+        line((i - 1) * barWidth, height - villages[i - 1], x, height - villages[i]);
+      }  
+      break;  
+   case 3:
+   {
+     float sum = sum(villages);
+     int maxIndex = maxIndex(villages);
+     float max = villages[maxIndex];
+     float thetaPrev = 0;
+     for(int i = 0 ; i < villages.length ; i ++)
+     {
+       fill(colors[i]);
+       stroke(colors[i]);
+       
+       float theta = map(villages[i], 0, sum, 0, TWO_PI);
+       textAlign(CENTER);
+       float col = map(villages[i], 0, max, 255, 100);
+       float thetaNext = thetaPrev + theta;
+       float radius = centX * 0.6f;       
+       float x = centX + sin(thetaPrev + (theta * 0.5f) + HALF_PI) * radius;      
+       float y = centY - cos(thetaPrev + (theta * 0.5f) + HALF_PI) * radius;
+       fill(255);
+       text(days[i], x, y);             
+       stroke(0, col, col);
+       fill(0, col, col);               
+       arc(centX, centY, centX, centY, thetaPrev, thetaNext);
+       thetaPrev = thetaNext;
+     }
+     break;
+    }
+  }
+}
+
+void drawAxis(float[] data, String[] horizLabels, int verticalIntervals, float vertDataRange, float border)
+{
+  stroke(200, 200, 200);
+  fill(200, 200, 200);  
+  
+  // Draw the horizontal azis  
+  line(border, height - border, width - border, height - border);
+  
+  float windowRange = (width - (border * 2.0f));  
+  float horizInterval =  windowRange / (data.length - 1);
+  float tickSize = border * 0.1f;
+  
+    
+  for (int i = 0 ; i < data.length ; i ++)
+  {   
+   // Draw the ticks
+   float x = border + (i * horizInterval);
+    line(x, height - (border - tickSize)
+      , x, (height - border));
+   float textY = height - (border * 0.5f);
+   
+   // Print the text 
+   textAlign(CENTER, CENTER);
+   text(horizLabels[i].substring(0, 3), x, textY);
+   
   }
   
+  // Draw the vertical axis
+  line(border, border , border, height - border);
+  
+  float verticalDataGap = vertDataRange / verticalIntervals;
+  float verticalWindowRange = height - (border * 2.0f);
+  float verticalWindowGap = verticalWindowRange / verticalIntervals; 
+  for (int i = 0 ; i <= verticalIntervals ; i ++)
+  {
+    float y = (height - border) - (i * verticalWindowGap);
+    line(border - tickSize, y, border, y);
+    float hAxisLabel = verticalDataGap * i;
+        
+    textAlign(RIGHT, CENTER);  
+    text((int)hAxisLabel, border - (tickSize * 2.0f), y);
+  }
+  
+  
+  
+}
+
+void keyPressed()
+{
+  if (key >= '0' && key <='9')
+  {
+    mode = key - '0';
+  }
+  println(mode);
 }
